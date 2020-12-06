@@ -11,8 +11,11 @@ namespace Z2Data_.Controllers
 
     public class OrdersController : Controller
     {
-        readonly DataAccessLayer _dataAccessLayer = new DataAccessLayer();
+        //Create a dataAccessLayer Object to handle the data 
+        private readonly DataAccessLayer _dataAccessLayer = new DataAccessLayer();
 
+
+        // API to pass the Orders to the web page
         [HttpGet]
         [Route("api/Orders/Index")]
         public IEnumerable<Orders> Index()
@@ -20,6 +23,8 @@ namespace Z2Data_.Controllers
             return _dataAccessLayer.GetOrders();
         }
 
+
+        // API to pass the new order to the database
         [HttpPost]
         [Route("api/Orders/Create")]
         public int Create(Process process)
@@ -27,13 +32,9 @@ namespace Z2Data_.Controllers
             return _dataAccessLayer.AddOrder(process);
         }
 
-        /*[HttpGet]
-        [Route("api/Orders/Details/{id}")]
-        public Orders Details(int id)
-        {
-            return dataAccessLayer.PrintOrder(id);
-        }*/
 
+
+        // API to pass the updated order to the database
         [HttpPut]
         [Route("api/Orders/Edit")]
         public int Edit(Process process)
@@ -41,6 +42,8 @@ namespace Z2Data_.Controllers
             return _dataAccessLayer.UpdateOrder(process);
         }
 
+
+        // API to delete an order by passing the id
         [HttpDelete]
         [Route("api/Orders/Delete/{id}")]
         public void Delete(int id)

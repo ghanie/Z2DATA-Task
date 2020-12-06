@@ -7,11 +7,14 @@ namespace Z2Data_.Models
 {
     public class DataAccessLayer
     {
+        // The connection string to the database 
         private const string ConnectionString =
             "Server=(localdb)\\MSSQLLocalDB;Database=Z2Data;Trusted_Connection=True;MultipleActiveResultSets=true";
 
 
-        //To view all orders
+        /* This Function is to return all the orders from "InventoryProcess" Table in Database
+         * From Stored Procedures "GetOrders"
+         * */
         public IEnumerable<Orders> GetOrders()
         {
 
@@ -37,10 +40,10 @@ namespace Z2Data_.Models
                 var order = new Orders
                 {
                     // Inventory Parameters
-                    Id = Convert.ToInt32(dataReader["InventoryId"]),
+                    OrderId = Convert.ToInt32(dataReader["InventoryId"]),
                     OrderQuantity = Convert.ToInt32(dataReader["OrderQuantity"]),
                     OrderCost = Convert.ToDecimal(dataReader["OrderCost"]),
-                    ProcessDate = Convert.ToDateTime(dataReader["InventoryProcessDate"]),
+                    OrderDate = Convert.ToDateTime(dataReader["InventoryProcessDate"]),
 
                     // Goods Parameters
                     GoodsId = Convert.ToInt32(dataReader["GoodsId"]),
@@ -67,7 +70,14 @@ namespace Z2Data_.Models
         }
 
 
-        // Adding New Order To the System
+        /* This Function is Creating New Order From Stored Procedures "AddProcess"
+         * 1- By adding "New Process" which contains CustomerName an ProcessTypeId in Process Table
+         * 2- Insert ProcessId into the InventoryProcess Table + GoodsId + Quantity
+         * 3- OrderDate Added Automatically By GETDATE()
+         * 4- OrderCost is Calculated by fetching the goodsId price * quantity,
+         * Then Updated in the InventoryProcess Table
+         * 5- Update the Goods Inventory Count by Subtracting The Order Quantity
+         */
         public int AddOrder(Process process)
         {
 
@@ -95,8 +105,16 @@ namespace Z2Data_.Models
             return 1;
         }
 
-        //To Update the records of Orders  
-        public int UpdateOrder(Process process)
+         // This Function is Updating Order From Stored Procedures "UpdateProcess"
+         // 1- Passing The InventoryId to know which Order to update
+         // 2- Update CustomerName an ProcessTypeId in Process Table
+         // 2- Update GoodsId + Quantity
+         // 3- OrderDate Added Automatically By GETDATE()
+         // 4- OrderCost is recalculated by fetching the goodsId price * quantity,
+         // Then Updated in the InventoryProcess Table
+         // Note: if the goodsId changed I couldn't restore the quantity to the original,
+         // I'll search for it how can I modify 
+         public int UpdateOrder(Process process)
         {
             using var connection = new SqlConnection(ConnectionString);
             var command = new SqlCommand("UpdateProcess", connection)
@@ -104,7 +122,7 @@ namespace Z2Data_.Models
                 CommandType = CommandType.StoredProcedure
             };
 
-            command.Parameters.AddWithValue("@InventoryId", process.Id);
+            command.Parameters.AddWithValue("@InventoryId", process.OrderId);
             command.Parameters.AddWithValue("@CustomerName", process.CustomerName);
             command.Parameters.AddWithValue("@ProcessTypeId", process.ProcessTypeId);
             command.Parameters.AddWithValue("@GoodsId", process.GoodsId);
@@ -119,7 +137,10 @@ namespace Z2Data_.Models
             return 1;
         }
 
-        // Delete Particular Process From Records
+        // This Function is Deleting Order From Stored Procedures "DeleteProcess"
+        // 1- Passing The ProcessId to local variable x
+        // 2- Passing The InventoryId to know which Order to Delete from InventoryProcess Table
+        // 3- take the x variable to delete the Process From Process Table too.
         public void DeleteOrder(int id)
         {
             using var connection = new SqlConnection(ConnectionString);
